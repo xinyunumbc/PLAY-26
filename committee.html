@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLAY@26 - Committee</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. Global Styles & Reset --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #FDFCF9; /* Soft off-white */
+            color: #1a1a1a;
+            overflow-x: hidden; /* Prevents horizontal scroll from gallery */
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --- 2. Header & Navigation --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 6%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-weight: 500;
+            font-size: 1rem;
+            color: #333;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: #000;
+        }
+        
+        .nav-links a.active {
+            color: #FF7A66; /* Main accent color */
+            font-weight: 600;
+        }
+
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-auth .login-btn {
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 10px 15px;
+        }
+        
+        .nav-auth .signup-btn {
+            background-color: #222;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .nav-auth .signup-btn:hover {
+            background-color: #444;
+        }
+        
+        /* --- 2B. Mobile Navigation Styles --- */
+        .mobile-nav-toggle {
+            display: none; 
+            position: absolute;
+            right: 20px;
+            top: 25px; 
+            z-index: 10001; 
+            background: transparent;
+            border: 0;
+            padding: 0.5em;
+            cursor: pointer;
+        }
+
+        .hamburger-line {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: #333;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:first-child {
+            transform: translateY(8px) rotate(45deg);
+        }
+        .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-nav-toggle[aria-expanded="true"] .hamburger-line:last-child {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* --- 3. Hero Section --- */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            max-width: 750px;
+            margin: 0 auto;
+            position: relative; 
+        }
+
+        .pill-badge {
+            display: inline-block;
+            background-color: #FEEA98;
+            color: #634E09;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem); 
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .hero .subtitle {
+            font-size: 1.15rem;
+            color: #555;
+            max-width: 550px;
+            margin: 0 auto 35px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #FF7A66; 
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 16px 35px;
+            border-radius: 30px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 122, 102, 0.4);
+        }
+
+        /* --- 4. Doodles (Fun Elements) --- */
+        .doodle {
+            font-family: 'Caveat', cursive; 
+            font-size: 1.4rem;
+            color: #333;
+            position: absolute;
+            user-select: none;
+        }
+
+        .doodle-elevate {
+            top: 100px;
+            right: -100px; 
+            transform: rotate(8deg);
+        }
+
+        .doodle-elevate::after {
+            content: '⤣'; 
+            display: block;
+            font-family: sans-serif;
+            font-size: 2rem;
+            transform: rotate(-30deg) scale(1.2);
+            margin-left: 70px;
+            margin-top: -10px;
+        }
+
+        .doodle-free {
+            bottom: -20px;
+            left: calc(50% - 180px); 
+            transform: rotate(-5deg);
+        }
+
+        .doodle-free::after {
+            content: '⤵'; 
+            display: inline-block;
+            font-family: sans-serif;
+            font-size: 1.8rem;
+            margin-left: 8px;
+            transform: rotate(20deg);
+        }
+        
+        @media (max-width: 1000px) {
+            .doodle-elevate, .doodle-free {
+                display: none;
+            }
+        }
+
+
+        /* --- 5. Rolling Gallery --- */
+        
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .scrolling-gallery {
+            width: 100%;
+            overflow: hidden;
+            margin-top: 50px;
+            perspective: 400px;
+            -webkit-mask-image: linear-gradient(
+                to right,
+                transparent 0%,
+                black 10%,
+                black 90%,
+                transparent 100%
+            );
+            mask-image: linear-gradient(
+                to right,
+                transparent 0%,
+                black 10%,
+                black 90%,
+                transparent 100%
+            );
+        }
+
+        .gallery-track {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            width: calc((260px + 20px) * 18);
+            animation: scroll 50s linear infinite;
+        }
+
+        .gallery-track:hover {
+            animation-play-state: paused;
+        }
+
+        .gallery-track .gallery-item {
+            width: 260px;
+            background-color: #fff;
+            border-radius: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden; 
+        }
+
+        .gallery-track .gallery-img {
+            width: 100%; 
+            
+            /* ===== THIS IS THE CHANGED LINE ===== */
+            height: 350px; /* Was 400px */
+            /* ==================================== */
+            
+            object-fit: cover;
+            display: block; 
+        }
+
+        .gallery-track .gallery-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            padding: 12px 10px; 
+        }
+
+        .gallery-track .gallery-item:nth-child(odd) {
+            transform: rotate(-4deg);
+        }
+        .gallery-track .gallery-item:nth-child(even) {
+            transform: rotate(3deg);
+        }
+
+        .gallery-track .gallery-item:hover {
+            transform: rotate(0deg) scale(1.05) translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+            z-index: 10;
+        }
+
+
+        /* --- 6. Floating Action Button (FAB) --- */
+        /* (FAB styles are omitted for brevity, but they are here) */
+
+
+        /* --- 7. Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            
+            /* Mobile Nav Overlay */
+            .nav-links {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3rem;
+                position: fixed;
+                inset: 0 0 0 0; 
+                z-index: 10000; 
+                background-color: hsla(38, 70%, 98%, 0.95); 
+                backdrop-filter: blur(5px);
+                transform: translateX(100%);
+                transition: transform 0.3s ease-out;
+            }
+            
+            .nav-links[data-visible="true"] {
+                transform: translateX(0%);
+            }
+            
+            .nav-links a {
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            
+            .mobile-nav-toggle {
+                display: block;
+            }
+            
+            .header {
+                padding: 20px 5%;
+            }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            .hero .subtitle {
+                font-size: 1rem;
+            }
+            .gallery-track {
+                animation-duration: 35s; 
+            }
+
+            .gallery-track .gallery-item {
+                width: 200px;
+            }
+            .gallery-track .gallery-img {
+                width: 100%;
+                height: 300px; /* Mobile height remains 300px, which looks good */
+            }
+            .gallery-track .gallery-name {
+                font-size: 1rem;
+                padding: 10px 8px;
+            }
+            
+            .gallery-track {
+                width: calc((200px + 20px) * 18);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+			  <span style="color: #FF7A66;">PLAY</span><span style="color: black;">@</span><span style="color: #FF7A66;">26</span>
+		</div>
+        
+        <button class="mobile-nav-toggle" aria-controls="primary-navigation" aria-expanded="false">
+            <span class="sr-only">Menu</span> 
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+        
+        <nav>
+            <ul class="nav-links" id="primary-navigation" data-visible="false">
+                <li><a href="index.html">Events</a></li>
+         
+                <li><a href="committee.html" class="active">Committee</a></li>
+            </ul>
+        </nav>
+
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="pill-badge">ACM - Academy</div>
+            <h1>Foster meaningful connections</h1>
+            <p classs="subtitle">
+                Aim to achieve learning and growth through the employee initiatives this FY2026
+            </p>
+            <a href="events.html" class="cta-button">Our Events</a>
+
+            <div class="doodle doodle-elevate">Introduction</div>
+            <div classs="doodle doodle-free">Connect With Us</div>
+        </section>
+
+        <section class="scrolling-gallery" aria-label="Creator Gallery">
+            <div class="gallery-track">
+                <div class="gallery-item">
+                    <img src="img/1.jpg" alt="Creator video example 1" class="gallery-img">
+                    <p class="gallery-name">Lee Lian</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/2.jpg" alt="Creator video example 2" class="gallery-img">
+                    <p class="gallery-name">Shiang Shiang</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/3.jpg" alt="Creator video example 3" class="gallery-img">
+                    <p class="gallery-name">Shameera</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/4.jpg" alt="Creator video example 4" class="gallery-img">
+                    <p class="gallery-name">Aaron</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/5.jpg" alt="Creator video example 5" class="gallery-img">
+                    <p class="gallery-name">Jason</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/6.jpg" alt="Creator video example 6" class="gallery-img">
+                    <p class="gallery-name">Intan</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/7.jpg" alt="Creator video example 7" class="gallery-img">
+                    <p class="gallery-name">Hanis</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/8.jpg" alt="Creator video example 8" class="gallery-img">
+                    <p class="gallery-name">Xin Yun</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/9.jpg" alt="Creator video example 9" class="gallery-img">
+                    <p classs="gallery-name">Noryati</p>
+                </div>
+
+                <div class="gallery-item">
+                    <img src="img/1.jpg" alt="Creator video example 1" class="gallery-img">
+                    <p class="gallery-name">Lee Lian</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/2.jpg" alt="Creator video example 2" class="gallery-img">
+                    <p class="gallery-name">Shiang Shiang</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/3.jpg" alt="Creator video example 3" class="gallery-img">
+                    <p class="gallery-name">Shameera</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/4.jpg" alt="Creator video example 4" class="gallery-img">
+                    <p class="gallery-name">Aaron</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/5.jpg" alt="Creator video example 5" class="gallery-img">
+                    <p class="gallery-name">Jason</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/6.jpg" alt="Creator video example 6" class="gallery-img">
+                    <p class="gallery-name">Intan</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/7.jpg" alt="Creator video example 7" class="gallery-img">
+                    <p class="gallery-name">Hanis</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="img/8.jpg" alt="Creator video example 8" class="gallery-img">
+                    <p class="gallery-name">Xin Yun</p>
+                </div>
+                <div classs="gallery-item">
+                    <img src="img/9.jpg" alt="Creator video example 9" class="gallery-img">
+                    <p class="gallery-name">Noryati</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.mobile-nav-toggle');
+            const navMenu = document.querySelector('#primary-navigation');
+
+            navToggle.addEventListener('click', () => {
+                const isVisible = navMenu.getAttribute('data-visible');
+
+                if (isVisible === "false") {
+                    navMenu.setAttribute('data-visible', "true");
+                    navToggle.setAttribute('aria-expanded', "true");
+                } else {
+                    navMenu.setAttribute('data-visible', "false");
+                    navToggle.setAttribute('aria-expanded', "false");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
