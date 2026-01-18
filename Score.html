@@ -35,6 +35,11 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Rank Gradients */
+        .rank-1 { background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%); color: #78350F; border: none; }
+        .rank-2 { background: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%); color: #1E293B; border: none; }
+        .rank-3 { background: linear-gradient(135deg, #FDBA74 0%, #C2410C 100%); color: #431407; border: none; }
+
         .team-p-gradient { background-image: linear-gradient(135deg, #d946ef, #a855f7); }
         .team-l-gradient { background-image: linear-gradient(135deg, #84cc16, #22c55e); }
         .team-a-gradient { background-image: linear-gradient(135deg, #f59e0b, #ea580c); }
@@ -72,19 +77,25 @@
 
     <!-- VIEW: Main Dashboard -->
     <div id="view-dashboard" class="flex flex-col h-full w-full absolute inset-0 z-10 bg-slate-900 transition-transform duration-300">
-        <!-- Header with Reset Button moved here -->
+        <!-- Header -->
         <header class="p-6 pb-2 flex justify-between items-start">
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight">PLAY Scoreboard</h1>
                 <p class="text-slate-400 text-sm mt-1">Tap a team to manage details</p>
             </div>
-            <button onclick="resetAll()" class="p-2 rounded-full hover:bg-white/10 text-slate-400 transition-colors" aria-label="Reset All">
-                <i class="ph ph-arrow-counter-clockwise text-xl"></i>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openHistory()" class="p-2 rounded-full hover:bg-white/10 text-slate-400 transition-colors" aria-label="History">
+                    <i class="ph ph-clock-counter-clockwise text-xl"></i>
+                </button>
+                <button onclick="resetAll()" class="p-2 rounded-full hover:bg-white/10 text-slate-400 transition-colors" aria-label="Reset All">
+                    <i class="ph ph-arrow-counter-clockwise text-xl"></i>
+                </button>
+            </div>
         </header>
 
-        <!-- Search Bar (Replaces Total Stats) -->
-        <div class="px-6 py-4 relative z-50">
+        <!-- Search & Leaderboard Entry -->
+        <div class="px-6 py-4 relative z-50 flex flex-col gap-3">
+            <!-- Search -->
             <div class="glass-panel rounded-2xl p-3 flex items-center shadow-lg relative group focus-within:border-blue-500/50 transition-colors">
                 <i class="ph ph-magnifying-glass text-xl text-slate-400 ml-2"></i>
                 <input type="text" id="global-search" placeholder="Find a member..." 
@@ -95,8 +106,14 @@
                 </button>
             </div>
             
+            <!-- Leaderboard Button -->
+            <button onclick="openLeaderboard()" class="w-full glass-panel rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all text-amber-400 font-bold tracking-wide shadow-md border-amber-500/20">
+                <i class="ph ph-trophy text-xl"></i>
+                View Global Leaderboard
+            </button>
+            
             <!-- Search Results Dropdown -->
-            <div id="search-results" class="absolute left-6 right-6 top-full mt-2 glass-panel bg-slate-800/95 rounded-xl overflow-hidden shadow-2xl hidden max-h-60 overflow-y-auto custom-scroll border-slate-700">
+            <div id="search-results" class="absolute left-6 right-6 top-16 mt-2 glass-panel bg-slate-800/95 rounded-xl overflow-hidden shadow-2xl hidden max-h-60 overflow-y-auto custom-scroll border-slate-700 z-50">
                 <!-- Results injected here -->
             </div>
         </div>
@@ -145,6 +162,40 @@
             <button onclick="promptAddMember()" class="w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/40 flex items-center justify-center hover:scale-105 active:scale-90 transition-all">
                 <i class="ph ph-plus text-2xl font-bold"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- VIEW: Leaderboard -->
+    <div id="view-leaderboard" class="flex flex-col h-full w-full absolute inset-0 z-20 bg-slate-900 translate-x-full transition-transform duration-300">
+        <header class="p-4 flex items-center glass-panel z-30 shadow-md gap-3">
+            <button onclick="closeLeaderboard()" class="p-2 -ml-2 rounded-full hover:bg-white/10 active:scale-95 transition-all">
+                <i class="ph ph-caret-left text-2xl"></i>
+            </button>
+            <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                <i class="ph ph-trophy-fill"></i> Leaderboard
+            </h2>
+        </header>
+        
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-20">
+            <div id="leaderboard-list" class="space-y-3">
+                <!-- Leaderboard rows injected JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: History -->
+    <div id="modal-history" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-slate-800 w-full max-w-md h-[80vh] rounded-2xl flex flex-col transform scale-95 transition-transform duration-200" id="modal-content-history">
+            <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i class="ph ph-clock-counter-clockwise"></i> Activity Log</h3>
+                <button onclick="closeModal('modal-history')" class="p-2 text-slate-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3" id="history-list">
+                <!-- History items injected JS -->
+            </div>
+            <div class="p-4 border-t border-white/5 text-center">
+                <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-red-400">Clear History</button>
+            </div>
         </div>
     </div>
 
@@ -197,10 +248,10 @@
     <script>
         // --- DATA & STATE ---
         const TEAMS_CONFIG = {
-            'P': { name: 'Team P', color: 'text-fuchsia-400', border: 'team-p-border' },
-            'L': { name: 'Team L', color: 'text-lime-400', border: 'team-l-border' },
-            'A': { name: 'Team A', color: 'text-amber-400', border: 'team-a-border' },
-            'Y': { name: 'Team Y', color: 'text-cyan-400', border: 'team-y-border' }
+            'P': { name: 'Team P', color: 'text-fuchsia-400', border: 'team-p-border', bgClass: 'bg-fuchsia-500' },
+            'L': { name: 'Team L', color: 'text-lime-400', border: 'team-l-border', bgClass: 'bg-lime-500' },
+            'A': { name: 'Team A', color: 'text-amber-400', border: 'team-a-border', bgClass: 'bg-amber-500' },
+            'Y': { name: 'Team Y', color: 'text-cyan-400', border: 'team-y-border', bgClass: 'bg-cyan-500' }
         };
 
         let state = {
@@ -209,7 +260,8 @@
                 'L': { members: [], bonus: 0 },
                 'A': { members: [], bonus: 0 },
                 'Y': { members: [], bonus: 0 }
-            }
+            },
+            history: []
         };
 
         let currentActiveTeam = null;
@@ -221,12 +273,13 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    // Merge with structure to ensure 'bonus' exists if upgrading from old version
+                    // Merge with structure to ensure 'bonus' and 'history' exist
                     ['P', 'L', 'A', 'Y'].forEach(key => {
                         if (!parsed.teams[key]) parsed.teams[key] = { members: [], bonus: 0 };
                         if (typeof parsed.teams[key].bonus === 'undefined') parsed.teams[key].bonus = 0;
                         if (!Array.isArray(parsed.teams[key].members)) parsed.teams[key].members = [];
                     });
+                    if (!parsed.history) parsed.history = [];
                     state = parsed;
                 } catch (e) {
                     console.error("Save data corrupted", e);
@@ -240,13 +293,24 @@
             if (currentActiveTeam) renderMembersList(currentActiveTeam);
         }
 
+        function logAction(message, type = 'neutral') {
+            const entry = {
+                id: Date.now(),
+                msg: message,
+                type: type, // neutral, positive, negative, danger
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            state.history.unshift(entry);
+            if (state.history.length > 50) state.history.pop(); // Keep last 50
+            saveState();
+        }
+
         // --- LOGIC ---
         function getMemberSum(teamKey) {
             return state.teams[teamKey].members.reduce((acc, m) => acc + m.score, 0);
         }
 
         function getTeamTotal(teamKey) {
-            // Total = Sum of Member Scores + Team Bonus
             const bonus = state.teams[teamKey].bonus || 0;
             return getMemberSum(teamKey) + bonus;
         }
@@ -254,19 +318,26 @@
         function addMember(teamKey, name) {
             const member = { id: Date.now().toString(), name: name || 'Player', score: 0 };
             state.teams[teamKey].members.push(member);
+            logAction(`Added member "${name}" to ${TEAMS_CONFIG[teamKey].name}`, 'positive');
             saveState();
         }
 
         function removeMember(teamKey, memberId) {
-            state.teams[teamKey].members = state.teams[teamKey].members.filter(m => m.id !== memberId);
-            saveState();
+            const member = state.teams[teamKey].members.find(m => m.id === memberId);
+            if (member) {
+                logAction(`Removed member "${member.name}" from ${TEAMS_CONFIG[teamKey].name}`, 'danger');
+                state.teams[teamKey].members = state.teams[teamKey].members.filter(m => m.id !== memberId);
+                saveState();
+            }
         }
 
         function adjustScore(teamKey, memberId, delta) {
             const member = state.teams[teamKey].members.find(m => m.id === memberId);
             if (member) {
                 member.score += delta;
-                saveState();
+                saveState(); // Log action is tricky for rapid clicks, maybe only log if interval passed or just rely on state
+                // Only log significant changes or debounce log? For now, we won't spam log with +1/-1 to keep history clean, 
+                // OR we can log it. Let's not log every click to avoid spam.
                 
                 // Animation trigger
                 const el = document.getElementById(`score-${memberId}`);
@@ -281,6 +352,8 @@
         function adjustTeamBonus(teamKey, amount) {
             if (typeof state.teams[teamKey].bonus === 'undefined') state.teams[teamKey].bonus = 0;
             state.teams[teamKey].bonus += amount;
+            const sign = amount > 0 ? '+' : '';
+            logAction(`Adjusted ${TEAMS_CONFIG[teamKey].name} Team Pts: ${sign}${amount}`, amount > 0 ? 'positive' : 'negative');
             saveState();
         }
 
@@ -290,10 +363,20 @@
                     'P': { members: [], bonus: 0 },
                     'L': { members: [], bonus: 0 },
                     'A': { members: [], bonus: 0 },
-                    'Y': { members: [], bonus: 0 }
+                    'Y': { members: [], bonus: 0 },
+                    history: []
                 };
+                logAction("System Reset", 'danger');
                 saveState();
                 location.reload();
+            }
+        }
+
+        function clearHistory() {
+            if(confirm("Clear history log?")) {
+                state.history = [];
+                saveState();
+                renderHistory();
             }
         }
 
@@ -360,14 +443,12 @@
             clearSearch();
             openTeamView(teamKey);
             
-            // Wait for render to complete and view to slide in
             setTimeout(() => {
                 const row = document.getElementById(`member-row-${memberId}`);
                 if (row) {
                     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Trigger visual highlight
                     row.classList.remove('highlight-member');
-                    void row.offsetWidth; // trigger reflow
+                    void row.offsetWidth; 
                     row.classList.add('highlight-member');
                 }
             }, 400); 
@@ -416,11 +497,9 @@
 
             list.innerHTML = '';
 
-            // Header Updates
             document.getElementById('detail-team-name').innerText = conf.name;
             document.getElementById('detail-team-name').className = `text-xl font-bold leading-tight ${conf.color}`;
             
-            // Score breakdown
             const total = getTeamTotal(teamKey);
             const bonus = teamData.bonus || 0;
             document.getElementById('detail-team-score').innerText = total;
@@ -436,7 +515,6 @@
                 teamData.members.forEach(member => {
                     const row = document.createElement('div');
                     row.className = `glass-panel rounded-xl p-3 flex items-center gap-3 slide-in border-transparent transition-colors duration-500`;
-                    // IMPORTANT: ID for Search Scroll
                     row.id = `member-row-${member.id}`;
                     
                     row.innerHTML = `
@@ -469,25 +547,118 @@
             }
         }
 
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+
+            let allMembers = [];
+            Object.keys(state.teams).forEach(teamKey => {
+                state.teams[teamKey].members.forEach(m => {
+                    allMembers.push({ ...m, teamKey });
+                });
+            });
+
+            // Sort Descending
+            allMembers.sort((a, b) => b.score - a.score);
+
+            if(allMembers.length === 0) {
+                list.innerHTML = `<div class="text-center text-slate-500 mt-10">No players yet.</div>`;
+                return;
+            }
+
+            allMembers.forEach((m, index) => {
+                const rank = index + 1;
+                let rankClass = 'glass-panel border-transparent';
+                let medal = '';
+                
+                if (rank === 1) { rankClass = 'rank-1 shadow-lg text-slate-900'; medal = '🥇'; }
+                else if (rank === 2) { rankClass = 'rank-2 shadow-md text-slate-800'; medal = '🥈'; }
+                else if (rank === 3) { rankClass = 'rank-3 shadow-md text-slate-900'; medal = '🥉'; }
+
+                const row = document.createElement('div');
+                row.className = `p-4 rounded-xl flex items-center justify-between cursor-pointer active:scale-95 transition-all ${rankClass}`;
+                row.onclick = () => {
+                    closeLeaderboard();
+                    navigateToMember(m.teamKey, m.id);
+                };
+
+                const teamConfig = TEAMS_CONFIG[m.teamKey];
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="font-black text-2xl w-8 text-center">${medal || rank}</div>
+                        <div>
+                            <div class="font-bold text-lg leading-tight">${m.name}</div>
+                            <div class="text-xs font-semibold opacity-70 mt-0.5 uppercase tracking-wide">
+                                <span class="${rank <= 3 ? '' : teamConfig.color}">${teamConfig.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="font-mono font-bold text-2xl">${m.score}</div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            
+            if (state.history.length === 0) {
+                list.innerHTML = `<div class="text-center text-slate-500 py-4">No activity yet.</div>`;
+                return;
+            }
+
+            state.history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-start gap-3 text-sm pb-2 border-b border-white/5 last:border-0';
+                
+                let iconColor = 'text-slate-400';
+                let icon = 'ph-info';
+                
+                if (item.type === 'positive') { iconColor = 'text-green-400'; icon = 'ph-plus-circle'; }
+                if (item.type === 'negative') { iconColor = 'text-orange-400'; icon = 'ph-minus-circle'; }
+                if (item.type === 'danger') { iconColor = 'text-red-400'; icon = 'ph-warning-circle'; }
+
+                div.innerHTML = `
+                    <i class="ph ${icon} ${iconColor} text-lg mt-0.5"></i>
+                    <div class="flex-1">
+                        <div class="text-slate-200">${item.msg}</div>
+                        <div class="text-[10px] text-slate-500 mt-1">${item.time}</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
         // --- NAVIGATION ---
         function openTeamView(teamKey) {
             currentActiveTeam = teamKey;
             renderMembersList(teamKey);
-            const dashboard = document.getElementById('view-dashboard');
-            const teamView = document.getElementById('view-team');
-            dashboard.style.transform = 'translateX(-30%)';
-            dashboard.style.opacity = '0.5';
-            teamView.style.transform = 'translateX(0)';
+            document.getElementById('view-dashboard').style.transform = 'translateX(-30%)';
+            document.getElementById('view-dashboard').style.opacity = '0.5';
+            document.getElementById('view-team').style.transform = 'translateX(0)';
         }
 
         function closeTeamView() {
             currentActiveTeam = null;
-            const dashboard = document.getElementById('view-dashboard');
-            const teamView = document.getElementById('view-team');
-            dashboard.style.transform = 'translateX(0)';
-            dashboard.style.opacity = '1';
-            teamView.style.transform = 'translateX(100%)';
+            document.getElementById('view-dashboard').style.transform = 'translateX(0)';
+            document.getElementById('view-dashboard').style.opacity = '1';
+            document.getElementById('view-team').style.transform = 'translateX(100%)';
             setTimeout(renderDashboard, 150);
+        }
+
+        function openLeaderboard() {
+            renderLeaderboard();
+            document.getElementById('view-dashboard').style.transform = 'translateX(-30%)';
+            document.getElementById('view-dashboard').style.opacity = '0.5';
+            document.getElementById('view-leaderboard').style.transform = 'translateX(0)';
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('view-dashboard').style.transform = 'translateX(0)';
+            document.getElementById('view-dashboard').style.opacity = '1';
+            document.getElementById('view-leaderboard').style.transform = 'translateX(100%)';
         }
 
         // --- MODAL UTILS ---
@@ -508,6 +679,11 @@
             content.classList.remove('scale-100');
             content.classList.add('scale-95');
             setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        }
+
+        function openHistory() {
+            renderHistory();
+            openModal('modal-history');
         }
 
         // --- ACTIONS ---
