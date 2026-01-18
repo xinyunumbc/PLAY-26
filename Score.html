@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PLAY Scoreboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .page-transition { transition: opacity 0.3s ease, transform 0.3s ease; }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .team-p-gradient { background-image: linear-gradient(135deg, #d946ef, #a855f7); }
+        .team-l-gradient { background-image: linear-gradient(135deg, #84cc16, #22c55e); }
+        .team-a-gradient { background-image: linear-gradient(135deg, #f59e0b, #ea580c); }
+        .team-y-gradient { background-image: linear-gradient(135deg, #06b6d4, #3b82f6); }
+
+        .team-p-border { border-left: 4px solid #d946ef; }
+        .team-l-border { border-left: 4px solid #84cc16; }
+        .team-a-border { border-left: 4px solid #f59e0b; }
+        .team-y-border { border-left: 4px solid #06b6d4; }
+        
+        .slide-in { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .score-change { animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Highlight animation for search results */
+        @keyframes highlight {
+            0% { background-color: rgba(59, 130, 246, 0.5); border-color: rgba(59, 130, 246, 0.8); }
+            100% { background-color: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.05); }
+        }
+        .highlight-member {
+            animation: highlight 2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col relative text-slate-100">
+
+    <!-- VIEW: Main Dashboard -->
+    <div id="view-dashboard" class="flex flex-col h-full w-full absolute inset-0 z-10 bg-slate-900 transition-transform duration-300">
+        <!-- Header with Reset Button moved here -->
+        <header class="p-6 pb-2 flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">PLAY Scoreboard</h1>
+                <p class="text-slate-400 text-sm mt-1">Tap a team to manage details</p>
+            </div>
+            <button onclick="resetAll()" class="p-2 rounded-full hover:bg-white/10 text-slate-400 transition-colors" aria-label="Reset All">
+                <i class="ph ph-arrow-counter-clockwise text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Search Bar (Replaces Total Stats) -->
+        <div class="px-6 py-4 relative z-50">
+            <div class="glass-panel rounded-2xl p-3 flex items-center shadow-lg relative group focus-within:border-blue-500/50 transition-colors">
+                <i class="ph ph-magnifying-glass text-xl text-slate-400 ml-2"></i>
+                <input type="text" id="global-search" placeholder="Find a member..." 
+                       class="bg-transparent border-none text-white placeholder-slate-500 w-full p-2 ml-2 focus:outline-none text-lg"
+                       autocomplete="off">
+                <button onclick="clearSearch()" id="clear-search-btn" class="hidden p-2 text-slate-400 hover:text-white mr-1">
+                    <i class="ph ph-x-circle text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Search Results Dropdown -->
+            <div id="search-results" class="absolute left-6 right-6 top-full mt-2 glass-panel bg-slate-800/95 rounded-xl overflow-hidden shadow-2xl hidden max-h-60 overflow-y-auto custom-scroll border-slate-700">
+                <!-- Results injected here -->
+            </div>
+        </div>
+
+        <!-- Teams Grid -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 pt-2 pb-20">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="teams-grid">
+                <!-- Teams injected JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: Team Detail -->
+    <div id="view-team" class="flex flex-col h-full w-full absolute inset-0 z-20 bg-slate-900 translate-x-full transition-transform duration-300">
+        <header class="p-4 flex items-center glass-panel z-30 shadow-md gap-3">
+            <button onclick="closeTeamView()" class="p-2 -ml-2 rounded-full hover:bg-white/10 active:scale-95 transition-all">
+                <i class="ph ph-caret-left text-2xl"></i>
+            </button>
+            
+            <div class="flex-1">
+                <h2 id="detail-team-name" class="text-xl font-bold leading-tight">Team Name</h2>
+                <div class="text-xs text-slate-400 flex items-center gap-1">
+                    Total: <span id="detail-team-score" class="font-mono text-slate-200 font-bold">0</span>
+                    <span class="text-slate-500 text-[10px] uppercase tracking-wide ml-1">(Bonus: <span id="detail-team-bonus" class="text-slate-400">0</span>)</span>
+                </div>
+            </div>
+
+            <button onclick="promptBulkScore()" class="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border border-white/5">
+                <i class="ph ph-trophy"></i>
+                <span>Team Pts</span>
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 pb-24 relative" id="members-list-container">
+            <div id="members-list" class="space-y-3">
+                <!-- Members injected JS -->
+            </div>
+            
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center h-64 text-slate-500">
+                <i class="ph ph-users-three text-5xl mb-3 opacity-50"></i>
+                <p>No members yet</p>
+            </div>
+        </div>
+
+        <div class="absolute bottom-6 right-6 z-40">
+            <button onclick="promptAddMember()" class="w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/40 flex items-center justify-center hover:scale-105 active:scale-90 transition-all">
+                <i class="ph ph-plus text-2xl font-bold"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Add Member -->
+    <div id="modal-add" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-slate-800 w-full max-w-sm rounded-2xl p-6 transform scale-95 transition-transform duration-200" id="modal-content-add">
+            <h3 class="text-lg font-bold mb-4">Add Member</h3>
+            <input type="text" id="new-member-name" placeholder="Enter name..." 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all mb-4"
+                   autocomplete="off">
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-add')" class="flex-1 py-3 rounded-xl font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onclick="confirmAddMember()" class="flex-1 py-3 rounded-xl font-semibold bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-colors">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Bulk/Bonus Score -->
+    <div id="modal-bulk" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-slate-800 w-full max-w-sm rounded-2xl p-6 transform scale-95 transition-transform duration-200" id="modal-content-bulk">
+            <h3 class="text-lg font-bold mb-2">Team Bonus Points</h3>
+            <p class="text-sm text-slate-400 mb-4">Add extra points to the <span class="text-white font-bold">Team Total</span> without affecting individual member scores.</p>
+            
+            <input type="number" id="bulk-score-input" placeholder="e.g. 50 or -10" 
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all mb-4 text-center font-mono text-xl"
+                   autocomplete="off">
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-bulk')" class="flex-1 py-3 rounded-xl font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onclick="confirmBulkScore()" class="flex-1 py-3 rounded-xl font-semibold bg-green-600 text-white shadow-lg shadow-green-600/30 hover:bg-green-500 transition-colors">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Delete Confirmation -->
+    <div id="modal-delete" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="glass-panel bg-slate-800 w-full max-w-sm rounded-2xl p-6 transform scale-95 transition-transform duration-200" id="modal-content-delete">
+            <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20 text-red-400 mb-4 mx-auto">
+                <i class="ph ph-trash text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-center">Delete Member?</h3>
+            <p class="text-sm text-slate-400 mb-6 text-center">This action cannot be undone.</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-delete')" class="flex-1 py-3 rounded-xl font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onclick="executeRemoveMember()" class="flex-1 py-3 rounded-xl font-semibold bg-red-600 text-white shadow-lg shadow-red-600/30 hover:bg-red-500 transition-colors">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        const TEAMS_CONFIG = {
+            'P': { name: 'Team P', color: 'text-fuchsia-400', border: 'team-p-border' },
+            'L': { name: 'Team L', color: 'text-lime-400', border: 'team-l-border' },
+            'A': { name: 'Team A', color: 'text-amber-400', border: 'team-a-border' },
+            'Y': { name: 'Team Y', color: 'text-cyan-400', border: 'team-y-border' }
+        };
+
+        let state = {
+            teams: {
+                'P': { members: [], bonus: 0 },
+                'L': { members: [], bonus: 0 },
+                'A': { members: [], bonus: 0 },
+                'Y': { members: [], bonus: 0 }
+            }
+        };
+
+        let currentActiveTeam = null;
+        let memberToDeleteId = null;
+
+        // --- PERSISTENCE ---
+        function loadState() {
+            const saved = localStorage.getItem('play_scoreboard_data');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Merge with structure to ensure 'bonus' exists if upgrading from old version
+                    ['P', 'L', 'A', 'Y'].forEach(key => {
+                        if (!parsed.teams[key]) parsed.teams[key] = { members: [], bonus: 0 };
+                        if (typeof parsed.teams[key].bonus === 'undefined') parsed.teams[key].bonus = 0;
+                        if (!Array.isArray(parsed.teams[key].members)) parsed.teams[key].members = [];
+                    });
+                    state = parsed;
+                } catch (e) {
+                    console.error("Save data corrupted", e);
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('play_scoreboard_data', JSON.stringify(state));
+            renderDashboard(); 
+            if (currentActiveTeam) renderMembersList(currentActiveTeam);
+        }
+
+        // --- LOGIC ---
+        function getMemberSum(teamKey) {
+            return state.teams[teamKey].members.reduce((acc, m) => acc + m.score, 0);
+        }
+
+        function getTeamTotal(teamKey) {
+            // Total = Sum of Member Scores + Team Bonus
+            const bonus = state.teams[teamKey].bonus || 0;
+            return getMemberSum(teamKey) + bonus;
+        }
+
+        function addMember(teamKey, name) {
+            const member = { id: Date.now().toString(), name: name || 'Player', score: 0 };
+            state.teams[teamKey].members.push(member);
+            saveState();
+        }
+
+        function removeMember(teamKey, memberId) {
+            state.teams[teamKey].members = state.teams[teamKey].members.filter(m => m.id !== memberId);
+            saveState();
+        }
+
+        function adjustScore(teamKey, memberId, delta) {
+            const member = state.teams[teamKey].members.find(m => m.id === memberId);
+            if (member) {
+                member.score += delta;
+                saveState();
+                
+                // Animation trigger
+                const el = document.getElementById(`score-${memberId}`);
+                if(el) {
+                    el.classList.remove('score-change');
+                    void el.offsetWidth; 
+                    el.classList.add('score-change');
+                }
+            }
+        }
+
+        function adjustTeamBonus(teamKey, amount) {
+            if (typeof state.teams[teamKey].bonus === 'undefined') state.teams[teamKey].bonus = 0;
+            state.teams[teamKey].bonus += amount;
+            saveState();
+        }
+
+        function resetAll() {
+            if(confirm("Reset all scores, bonuses, and members?")) {
+                state = {
+                    'P': { members: [], bonus: 0 },
+                    'L': { members: [], bonus: 0 },
+                    'A': { members: [], bonus: 0 },
+                    'Y': { members: [], bonus: 0 }
+                };
+                saveState();
+                location.reload();
+            }
+        }
+
+        // --- SEARCH LOGIC ---
+        const searchInput = document.getElementById('global-search');
+        const searchResults = document.getElementById('search-results');
+        const clearBtn = document.getElementById('clear-search-btn');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (query.length > 0) {
+                clearBtn.classList.remove('hidden');
+                performSearch(query);
+            } else {
+                clearBtn.classList.add('hidden');
+                searchResults.classList.add('hidden');
+            }
+        });
+
+        function clearSearch() {
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            searchResults.classList.add('hidden');
+        }
+
+        function performSearch(query) {
+            const results = [];
+            Object.keys(state.teams).forEach(teamKey => {
+                state.teams[teamKey].members.forEach(member => {
+                    if (member.name.toLowerCase().includes(query)) {
+                        results.push({ ...member, teamKey });
+                    }
+                });
+            });
+            renderSearchResults(results);
+        }
+
+        function renderSearchResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="p-4 text-center text-slate-500 text-sm">No members found</div>';
+            } else {
+                results.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'p-4 border-b border-white/5 hover:bg-white/10 active:bg-white/20 cursor-pointer flex justify-between items-center transition-colors';
+                    const teamName = TEAMS_CONFIG[item.teamKey].name;
+                    const teamColor = TEAMS_CONFIG[item.teamKey].color;
+                    
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-semibold text-white text-lg">${item.name}</div>
+                            <div class="text-xs ${teamColor} font-bold mt-1">${teamName}</div>
+                        </div>
+                        <div class="text-slate-400 font-mono text-sm bg-black/20 px-2 py-1 rounded">Score: ${item.score}</div>
+                    `;
+                    div.onclick = () => navigateToMember(item.teamKey, item.id);
+                    searchResults.appendChild(div);
+                });
+            }
+            searchResults.classList.remove('hidden');
+        }
+
+        function navigateToMember(teamKey, memberId) {
+            clearSearch();
+            openTeamView(teamKey);
+            
+            // Wait for render to complete and view to slide in
+            setTimeout(() => {
+                const row = document.getElementById(`member-row-${memberId}`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Trigger visual highlight
+                    row.classList.remove('highlight-member');
+                    void row.offsetWidth; // trigger reflow
+                    row.classList.add('highlight-member');
+                }
+            }, 400); 
+        }
+
+        // --- UI RENDERING ---
+
+        function renderDashboard() {
+            const grid = document.getElementById('teams-grid');
+            grid.innerHTML = '';
+            
+            Object.keys(TEAMS_CONFIG).forEach(key => {
+                const conf = TEAMS_CONFIG[key];
+                const teamData = state.teams[key];
+                const totalScore = getTeamTotal(key);
+
+                const card = document.createElement('div');
+                card.className = `glass-panel rounded-2xl p-5 relative overflow-hidden group active:scale-95 transition-all cursor-pointer ${conf.border}`;
+                card.onclick = () => openTeamView(key);
+
+                card.innerHTML = `
+                    <div class="absolute right-0 top-0 p-4 opacity-10">
+                        <span class="text-6xl font-black">${key}</span>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex flex-col items-start gap-1 mb-2">
+                            <h2 class="text-xl font-bold ${conf.color}">${conf.name}</h2>
+                            <div class="bg-white/5 rounded-full px-2 py-0.5 text-xs text-slate-300 font-medium inline-block">
+                                ${teamData.members.length} Members
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider">Total Score</div>
+                            <div class="text-4xl font-mono font-bold text-white mt-1">${totalScore}</div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderMembersList(teamKey) {
+            const list = document.getElementById('members-list');
+            const teamData = state.teams[teamKey];
+            const conf = TEAMS_CONFIG[teamKey];
+
+            list.innerHTML = '';
+
+            // Header Updates
+            document.getElementById('detail-team-name').innerText = conf.name;
+            document.getElementById('detail-team-name').className = `text-xl font-bold leading-tight ${conf.color}`;
+            
+            // Score breakdown
+            const total = getTeamTotal(teamKey);
+            const bonus = teamData.bonus || 0;
+            document.getElementById('detail-team-score').innerText = total;
+            document.getElementById('detail-team-bonus').innerText = bonus;
+            const bonusEl = document.getElementById('detail-team-bonus');
+            bonusEl.className = bonus > 0 ? 'text-green-400 font-bold' : (bonus < 0 ? 'text-red-400 font-bold' : 'text-slate-400');
+
+            if (teamData.members.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                
+                teamData.members.forEach(member => {
+                    const row = document.createElement('div');
+                    row.className = `glass-panel rounded-xl p-3 flex items-center gap-3 slide-in border-transparent transition-colors duration-500`;
+                    // IMPORTANT: ID for Search Scroll
+                    row.id = `member-row-${member.id}`;
+                    
+                    row.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-lg text-slate-100 truncate">${member.name}</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                             <button onclick="adjustScore('${teamKey}', '${member.id}', -1)" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 active:bg-red-500/20 active:border-red-500 transition-colors flex items-center justify-center">
+                                <i class="ph ph-minus text-lg text-slate-300"></i>
+                            </button>
+                            
+                            <div class="w-10 text-center">
+                                <span id="score-${member.id}" class="text-xl font-mono font-bold block">${member.score}</span>
+                            </div>
+
+                            <button onclick="adjustScore('${teamKey}', '${member.id}', 1)" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 active:bg-green-500/20 active:border-green-500 transition-colors flex items-center justify-center">
+                                <i class="ph ph-plus text-lg text-slate-300"></i>
+                            </button>
+                        </div>
+
+                        <div class="h-8 w-[1px] bg-white/10 mx-1"></div>
+
+                        <button onclick="promptRemove('${member.id}')" class="w-10 h-10 rounded-lg hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors flex items-center justify-center" aria-label="Remove Member">
+                            <i class="ph ph-trash text-lg"></i>
+                        </button>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+        }
+
+        // --- NAVIGATION ---
+        function openTeamView(teamKey) {
+            currentActiveTeam = teamKey;
+            renderMembersList(teamKey);
+            const dashboard = document.getElementById('view-dashboard');
+            const teamView = document.getElementById('view-team');
+            dashboard.style.transform = 'translateX(-30%)';
+            dashboard.style.opacity = '0.5';
+            teamView.style.transform = 'translateX(0)';
+        }
+
+        function closeTeamView() {
+            currentActiveTeam = null;
+            const dashboard = document.getElementById('view-dashboard');
+            const teamView = document.getElementById('view-team');
+            dashboard.style.transform = 'translateX(0)';
+            dashboard.style.opacity = '1';
+            teamView.style.transform = 'translateX(100%)';
+            setTimeout(renderDashboard, 150);
+        }
+
+        // --- MODAL UTILS ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div[id*="modal-content"]');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div[id*="modal-content"]');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        }
+
+        // --- ACTIONS ---
+        const inputName = document.getElementById('new-member-name');
+        function promptAddMember() {
+            openModal('modal-add');
+            inputName.value = '';
+            inputName.focus();
+        }
+        function confirmAddMember() {
+            const name = inputName.value.trim();
+            if (name) {
+                addMember(currentActiveTeam, name);
+                closeModal('modal-add');
+            }
+        }
+        inputName.addEventListener('keyup', (e) => { if(e.key === 'Enter') confirmAddMember(); });
+
+        const inputBulk = document.getElementById('bulk-score-input');
+        function promptBulkScore() {
+            openModal('modal-bulk');
+            inputBulk.value = '';
+            inputBulk.focus();
+        }
+        function confirmBulkScore() {
+            const val = parseInt(inputBulk.value);
+            if (!isNaN(val) && val !== 0) {
+                adjustTeamBonus(currentActiveTeam, val);
+                closeModal('modal-bulk');
+            }
+        }
+        inputBulk.addEventListener('keyup', (e) => { if(e.key === 'Enter') confirmBulkScore(); });
+
+        function promptRemove(id) {
+            memberToDeleteId = id;
+            openModal('modal-delete');
+        }
+        function executeRemoveMember() {
+            if (currentActiveTeam && memberToDeleteId) {
+                removeMember(currentActiveTeam, memberToDeleteId);
+                memberToDeleteId = null;
+                closeModal('modal-delete');
+            }
+        }
+
+        // --- INIT ---
+        loadState();
+        renderDashboard();
+
+    </script>
+</body>
+</html>
